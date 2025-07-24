@@ -23,9 +23,8 @@ schema_file = st.file_uploader("Upload JSON Schema", type="json")
 text_file = st.file_uploader("Upload Input File (any format)")
 
 # Model selector and OpenRouter API key input
-model_choice = st.selectbox("Select Model (via OpenRouter)", ["mistralai/mistral-7b-instruct", "meta-llama/llama-2-13b-chat", "mistralai/mixtral-8x7b-instruct"])
-api_key = st.text_input("Enter your OpenRouter API Key", type="password")
-
+model_choice = "mistralai/mistral-7b-instruct"
+api_key = st.secrets["OPENROUTER_API_KEY"]
 # Complexity analysis
 @st.cache_data
 def analyze_schema_complexity(schema):
