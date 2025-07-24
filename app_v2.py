@@ -128,7 +128,7 @@ def extract_text(file):
 def query_openrouter_contextual(prompt, model, api_key):
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": "https://your-app-name.streamlit.app",
+        "HTTP-Referer": "https://metaform-demo.streamlit.app/",
         "Content-Type": "application/json"
     }
     messages = [
