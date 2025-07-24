@@ -4,5 +4,4 @@ pymupdf
 python-docx
 beautifulsoup4
 pillow
-paddleocr
-email
+easyocr
