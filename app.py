@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import requests
-import fitz  # PyMuPDF for PDF support
+import fitz  
 import docx
 import mimetypes
 import email
@@ -15,7 +15,7 @@ import easyocr
 ocr = easyocr.Reader(['en'], gpu=False)
 
 # Title
-st.title("🔄 Unstructured Text to Structured JSON Extractor")
+st.title("Unstructured Text to Structured JSON Extractor")
 st.markdown("Upload your **schema** and **unstructured input** (text, PDF, DOCX, HTML, EML, or image-based PDFs). The app will extract structured JSON as per schema.")
 
 # Upload schema and input file
@@ -152,7 +152,7 @@ def extract_json_from_text(text):
 
 if schema_file and text_file and st.button("Generate JSON"):
     if not api_key:
-        st.warning("🔑 Please enter your OpenRouter API key to proceed.")
+        st.warning("Please enter your OpenRouter API key to proceed.")
     else:
         schema = json.load(schema_file)
         text = extract_text(text_file)
@@ -160,14 +160,14 @@ if schema_file and text_file and st.button("Generate JSON"):
         fields, depth, enums, score = analyze_schema_complexity(schema)
         strategy = strategy_selector(score)
 
-        st.info(f"✅ Based on schema complexity, the selected strategy is: **{strategy}**")
+        st.info(f"Based on schema complexity, the selected strategy is: **{strategy}**")
 
         with st.spinner("Calling model via OpenRouter with schema & text in context..."):
             try:
                 prompt = generate_prompt(schema, text, strategy)
                 output = query_openrouter_contextual(prompt, model=model_choice, api_key=api_key)
                 parsed = extract_json_from_text(output)
-                st.success("✅ JSON Extracted")
+                st.success("JSON Extracted")
                 st.json(parsed)
 
                 json_bytes = json.dumps(parsed, indent=2).encode('utf-8')
@@ -178,7 +178,7 @@ if schema_file and text_file and st.button("Generate JSON"):
                     mime="application/json"
                 )
             except Exception as e:
-                st.error(f"⚠️ Error during extraction: {e}")
+                st.error(f"Error during extraction: {e}")
                 st.text(output if 'output' in locals() else "No output returned.")
 else:
-    st.info("📁 Please upload both a schema file and a text file to begin. Then click 'Generate JSON'.")
+    st.info("Please upload both a schema file and a text file to begin. Then click 'Generate JSON'.")
