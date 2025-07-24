@@ -61,6 +61,21 @@ def strategy_selector(score):
     else:
         return "Chunk schema & input, iterative stitching"
 
+# Prompt generator based on strategy
+
+def generate_prompt(schema, input_text, strategy):
+    base_prompt = "You are an expert system for structuring unstructured data. Your task is to convert the provided text into a structured JSON format that follows the exact schema below."
+    schema_json = json.dumps(schema, indent=2)
+
+    if strategy == "Direct prompt, no schema splitting":
+        return f"{base_prompt}\n\nSchema:\n{schema_json}\n\nInput Text:\n{input_text}\n\nReturn ONLY the extracted JSON."
+
+    elif strategy == "Chunked schema or input, 2–3 LLM calls":
+        return f"{base_prompt}\n\nDue to size, you may only see part of the schema or input. Ensure strict adherence to the schema below.\n\nSchema (partial or full):\n{schema_json}\n\nInput Text:\n{input_text}\n\nReturn JSON matching the schema."
+
+    elif strategy == "Chunk schema & input, iterative stitching":
+        return f"{base_prompt}\n\nSchema is complex. Apply an iterative approach to structure the input across schema segments. Maintain exact property names.\n\nSchema (may be partial):\n{schema_json}\n\nInput Text (chunk):\n{input_text}\n\nReturn valid JSON output."
+
 # File readers
 
 def extract_text(file):
@@ -111,16 +126,15 @@ def extract_text(file):
 
 # Query OpenRouter API with structured messages
 
-def query_openrouter_contextual(schema, text, model, api_key):
+def query_openrouter_contextual(prompt, model, api_key):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "HTTP-Referer": "https://your-app-name.streamlit.app",
         "Content-Type": "application/json"
     }
     messages = [
-        {"role": "system", "content": "You are an expert data extraction engine. Extract structured data strictly adhering to the following JSON schema."},
-        {"role": "system", "content": json.dumps(schema)},
-        {"role": "user", "content": f"Here is the unstructured input:\n\n{text}\n\nReturn the structured data in JSON."}
+        {"role": "system", "content": "You convert unstructured content into strict JSON format given a schema."},
+        {"role": "user", "content": prompt}
     ]
     response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json={"model": model, "messages": messages})
     response.raise_for_status()
@@ -161,7 +175,8 @@ if schema_file and text_file:
         if st.button("Run Extraction (via OpenRouter)"):
             with st.spinner("Calling model via OpenRouter with schema & text in context..."):
                 try:
-                    output = query_openrouter_contextual(schema, text, model=model_choice, api_key=api_key)
+                    prompt = generate_prompt(schema, text, strategy)
+                    output = query_openrouter_contextual(prompt, model=model_choice, api_key=api_key)
                     parsed = extract_json_from_text(output)
                     st.success("✅ JSON Extracted")
                     st.json(parsed)
@@ -180,3 +195,4 @@ if schema_file and text_file:
                     st.text(output if 'output' in locals() else "No output returned.")
 else:
     st.info("📁 Please upload both a schema file and a text file to begin.")
+
