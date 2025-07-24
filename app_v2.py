@@ -25,7 +25,6 @@ text_file = st.file_uploader("Upload Input File (any format)")
 # Model selector and OpenRouter API key input
 model_choice = "mistralai/mistral-7b-instruct"
 api_key = st.secrets["OPENROUTER_API_KEY"]
-
 # Complexity analysis
 @st.cache_data
 def analyze_schema_complexity(schema):
@@ -150,7 +149,7 @@ def extract_json_from_text(text):
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse JSON: {e}")
 
-if schema_file and text_file:
+if schema_file and text_file and st.button("Generate JSON"):
     if not api_key:
         st.warning("🔑 Please enter your OpenRouter API key to proceed.")
     else:
@@ -172,27 +171,27 @@ if schema_file and text_file:
         st.subheader("📥 Input Text")
         st.text_area("View Text Input", text, height=200)
 
-        if st.button("Run Extraction (via OpenRouter)"):
-            with st.spinner("Calling model via OpenRouter with schema & text in context..."):
-                try:
-                    prompt = generate_prompt(schema, text, strategy)
-                    output = query_openrouter_contextual(prompt, model=model_choice, api_key=api_key)
-                    parsed = extract_json_from_text(output)
-                    st.success("✅ JSON Extracted")
-                    st.json(parsed)
+        with st.spinner("Calling model via OpenRouter with schema & text in context..."):
+            try:
+                prompt = generate_prompt(schema, text, strategy)
+                st.subheader("🧾 Prompt Sent to LLM")
+                st.code(prompt, language="markdown")
 
-                    # Add download button
-                    json_bytes = json.dumps(parsed, indent=2).encode('utf-8')
-                    st.download_button(
-                        label="📥 Download JSON Output",
-                        data=json_bytes,
-                        file_name="extracted_output.json",
-                        mime="application/json"
-                    )
+                output = query_openrouter_contextual(prompt, model=model_choice, api_key=api_key)
+                parsed = extract_json_from_text(output)
+                st.success("✅ JSON Extracted")
+                st.json(parsed)
 
-                except Exception as e:
-                    st.error(f"⚠️ Error during extraction: {e}")
-                    st.text(output if 'output' in locals() else "No output returned.")
+                json_bytes = json.dumps(parsed, indent=2).encode('utf-8')
+                st.download_button(
+                    label="📥 Download JSON Output",
+                    data=json_bytes,
+                    file_name="extracted_output.json",
+                    mime="application/json"
+                )
+            except Exception as e:
+                st.error(f"⚠️ Error during extraction: {e}")
+                st.text(output if 'output' in locals() else "No output returned.")
 else:
-    st.info("📁 Please upload both a schema file and a text file to begin.")
+    st.info("📁 Please upload both a schema file and a text file to begin. Then click 'Generate JSON'.")
 
