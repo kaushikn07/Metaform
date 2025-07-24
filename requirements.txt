@@ -2,7 +2,7 @@ streamlit
 requests
 pymupdf
 python-docx
-python-magic-bin; sys_platform == 'win32'
 beautifulsoup4
 pillow
 paddleocr
+email
