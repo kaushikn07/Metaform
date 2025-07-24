@@ -9,10 +9,10 @@ from bs4 import BeautifulSoup
 from PIL import Image
 import io
 import re
-from paddleocr import PaddleOCR
+import easyocr
 
-# Initialize PaddleOCR
-ocr = PaddleOCR(use_angle_cls=True, lang='en')
+# Initialize EasyOCR
+ocr = easyocr.Reader(['en'], gpu=False)
 
 # Title
 st.title("🔄 Unstructured Text to Structured JSON Extractor")
@@ -25,6 +25,7 @@ text_file = st.file_uploader("Upload Input File (any format)")
 # Model selector and OpenRouter API key input
 model_choice = "mistralai/mistral-7b-instruct"
 api_key = st.secrets["OPENROUTER_API_KEY"]
+
 # Complexity analysis
 @st.cache_data
 def analyze_schema_complexity(schema):
@@ -77,9 +78,9 @@ def extract_text(file):
                     img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
                     img_bytes = io.BytesIO()
                     img.save(img_bytes, format='PNG')
-                    result = ocr.ocr(img_bytes.getvalue(), cls=True)
-                    for line in result[0]:
-                        ocr_text.append(line[1][0])
+                    result = ocr.readtext(img_bytes.getvalue())
+                    for _, text, _ in result:
+                        ocr_text.append(text)
                 text = "\n".join(ocr_text)
             return text
         except Exception as e:
