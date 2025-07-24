@@ -24,7 +24,7 @@ text_file = st.file_uploader("Upload Input File (any format)")
 
 # Model selector and OpenRouter API key input
 model_choice = "mistralai/mistral-7b-instruct"
-api_key = st.secerts['OPENROUTER_API_KEY']
+api_key = st.secrets['OPENROUTER_API_KEY']
 
 # Complexity analysis
 @st.cache_data
